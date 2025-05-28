@@ -13,10 +13,6 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
-const mandalore = localFont({
-  src: "./fonts/Mandalore.ttf",
-  variable: "--font-mandalore",
-});
 
 export const metadata: Metadata = {
   title: "Megaparsec",
@@ -31,7 +27,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body
-        className={`${geistSans.variable} ${geistMono.variable} ${mandalore.variable} antialiased`}
+        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
       </body>
