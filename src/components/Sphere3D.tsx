@@ -48,8 +48,10 @@ export default function Sphere3D({ position, scale, color, id, onClick, onPositi
       const rotSpeed = 0.0015 * delta * 60
       meshRef.current.rotation.x += rotSpeed
       meshRef.current.rotation.y += rotSpeed * 1.5
+      // Synchronize all rotation axes to prevent visual drift
       wireframeRef.current.rotation.x = meshRef.current.rotation.x
       wireframeRef.current.rotation.y = meshRef.current.rotation.y
+      wireframeRef.current.rotation.z = meshRef.current.rotation.z
       
       // Synchronize wireframe scale - ensure uniform scaling with slight offset
       const wireframeScale = currentScaleRef.current * 0.95

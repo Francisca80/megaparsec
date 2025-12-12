@@ -205,8 +205,15 @@ function CameraController({ mousePosition, focusSphereId }: { mousePosition: { x
   const controlsRef = useRef<any>(null)
   const { camera } = useThree()
   const targetRef = useRef<THREE.Vector3 | null>(null)
+  const animationFrameRef = useRef<number | null>(null)
   
   useEffect(() => {
+    // Cancel any ongoing animation when effect runs or component unmounts
+    if (animationFrameRef.current !== null) {
+      cancelAnimationFrame(animationFrameRef.current)
+      animationFrameRef.current = null
+    }
+    
     if (focusSphereId && spherePositions3D[focusSphereId] && controlsRef.current) {
       const spherePosition = spherePositions3D[focusSphereId]
       const target = new THREE.Vector3(...spherePosition)
@@ -218,6 +225,12 @@ function CameraController({ mousePosition, focusSphereId }: { mousePosition: { x
       const startTime = Date.now()
       
       const animate = () => {
+        // Check if controlsRef is still valid before accessing
+        if (!controlsRef.current) {
+          animationFrameRef.current = null
+          return
+        }
+        
         const elapsed = Date.now() - startTime
         const progress = Math.min(elapsed / duration, 1)
         
@@ -229,13 +242,22 @@ function CameraController({ mousePosition, focusSphereId }: { mousePosition: { x
         controlsRef.current.update()
         
         if (progress < 1) {
-          requestAnimationFrame(animate)
+          animationFrameRef.current = requestAnimationFrame(animate)
         } else {
           targetRef.current = null
+          animationFrameRef.current = null
         }
       }
       
-      animate()
+      animationFrameRef.current = requestAnimationFrame(animate)
+    }
+    
+    // Cleanup function to cancel animation on unmount or when dependencies change
+    return () => {
+      if (animationFrameRef.current !== null) {
+        cancelAnimationFrame(animationFrameRef.current)
+        animationFrameRef.current = null
+      }
     }
   }, [focusSphereId, camera])
   
