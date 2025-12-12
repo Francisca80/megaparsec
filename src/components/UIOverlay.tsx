@@ -342,7 +342,9 @@ export default function UIOverlay({ activePanel, onShowPanel, onHidePanel, spher
       </div>
 
       {/* About Information Overlay - Bottom Right - Responsive */}
-      <div className="absolute bottom-4 right-4 sm:bottom-8 sm:right-8 pointer-events-auto font-mono max-w-[90%] sm:max-w-[500px] md:max-w-[600px]">
+      <div className={`absolute bottom-4 right-4 sm:bottom-8 sm:right-8 pointer-events-auto font-mono max-w-[90%] sm:max-w-[500px] md:max-w-[600px] ${
+        isAboutExpanded ? 'bg-black/80 sm:bg-transparent rounded-lg p-2 sm:p-0' : ''
+      }`}>
         <div className="flex flex-col gap-1 sm:gap-1.5">
           {/* Header with Title - Always visible */}
           <motion.button
