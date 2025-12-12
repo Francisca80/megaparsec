@@ -155,7 +155,7 @@ export default function Sphere3D({ position, scale, color, id, onClick, onPositi
       {/* Inner glow layer for all blue spheres - adds depth */}
       {isBlue && (
         <mesh scale={[scale * 0.92, scale * 0.92, scale * 0.92]}>
-          <sphereGeometry args={[1, isLargeSphere ? 64 : 48]} />
+          <sphereGeometry args={isLargeSphere ? [1, 64, 64] : [1, 48, 48]} />
           <meshPhongMaterial 
             color={color} 
             transparent 
@@ -171,7 +171,7 @@ export default function Sphere3D({ position, scale, color, id, onClick, onPositi
       {/* Outer rim highlight for all blue spheres - enhances 3D edge */}
       {isBlue && (
         <mesh scale={[scale * 1.02, scale * 1.02, scale * 1.02]}>
-          <sphereGeometry args={[1, isLargeSphere ? 64 : 48]} />
+          <sphereGeometry args={isLargeSphere ? [1, 64, 64] : [1, 48, 48]} />
           <meshPhongMaterial 
             color={color} 
             transparent 

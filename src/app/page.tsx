@@ -11,13 +11,18 @@ export default function Home() {
   const [spherePositions, setSpherePositions] = useState<Record<string, { x: number; y: number; visible: boolean }>>({})
 
   const showPanel = (panelId: string) => {
-    setActivePanel(activePanel === panelId ? null : panelId)
-    // Focus camera on the sphere when panel is activated
-    if (activePanel !== panelId) {
-      setFocusSphereId(panelId)
-      // Reset focus after animation completes
-      setTimeout(() => setFocusSphereId(null), 1500)
-    }
+    setActivePanel((currentPanel) => {
+      const willBeActive = currentPanel === panelId ? null : panelId
+      
+      // Focus camera on the sphere when panel is being activated (not closed)
+      if (willBeActive === panelId) {
+        setFocusSphereId(panelId)
+        // Reset focus after animation completes
+        setTimeout(() => setFocusSphereId(null), 1500)
+      }
+      
+      return willBeActive
+    })
   }
 
   const hidePanel = () => {
