@@ -40,7 +40,7 @@ export default function UIOverlay({ activePanel, onShowPanel, onHidePanel, spher
     
     rafId.current = requestAnimationFrame(() => {
       const bounds: Array<{ id: string; x: number; y: number; width: number; height: number }> = []
-      const minDistance = 180 // Minimum distance between panel centers
+      const minDistance = 250 // Increased minimum distance between panel centers
       const padding = 20
 
       // Collect all panel bounds from DOM
@@ -75,31 +75,43 @@ export default function UIOverlay({ activePanel, onShowPanel, onHidePanel, spher
       })
 
       // Detect collisions and calculate separation vectors
-      for (let i = 0; i < bounds.length; i++) {
-        for (let j = i + 1; j < bounds.length; j++) {
-          const panel1 = bounds[i]
-          const panel2 = bounds[j]
-          
-          const dx = panel2.x - panel1.x
-          const dy = panel2.y - panel1.y
-          const distance = Math.sqrt(dx * dx + dy * dy)
-          
-          // Check if panels are too close
-          const combinedRadius = (panel1.width + panel2.width) / 2 + minDistance
-          
-          if (distance < combinedRadius && distance > 0) {
-            // Calculate separation needed
-            const separation = combinedRadius - distance
-            const angle = Math.atan2(dy, dx)
+      // Run multiple iterations for better separation
+      const iterations = 3
+      for (let iter = 0; iter < iterations; iter++) {
+        for (let i = 0; i < bounds.length; i++) {
+          for (let j = i + 1; j < bounds.length; j++) {
+            const panel1 = bounds[i]
+            const panel2 = bounds[j]
             
-            // Move panels apart proportionally
-            const moveX = Math.cos(angle) * separation * 0.5
-            const moveY = Math.sin(angle) * separation * 0.5
+            const dx = panel2.x - panel1.x
+            const dy = panel2.y - panel1.y
+            const distance = Math.sqrt(dx * dx + dy * dy)
             
-            adjustments[panel1.id].dx -= moveX
-            adjustments[panel1.id].dy -= moveY
-            adjustments[panel2.id].dx += moveX
-            adjustments[panel2.id].dy += moveY
+            // Use larger combined radius including height for better separation
+            const combinedWidth = (panel1.width + panel2.width) / 2
+            const combinedHeight = (panel1.height + panel2.height) / 2
+            const combinedRadius = Math.max(combinedWidth, combinedHeight) + minDistance
+            
+            if (distance < combinedRadius && distance > 0) {
+              // Calculate separation needed
+              const separation = combinedRadius - distance
+              const angle = Math.atan2(dy, dx)
+              
+              // Move panels apart more aggressively
+              const moveX = Math.cos(angle) * separation * 0.6
+              const moveY = Math.sin(angle) * separation * 0.6
+              
+              adjustments[panel1.id].dx -= moveX
+              adjustments[panel1.id].dy -= moveY
+              adjustments[panel2.id].dx += moveX
+              adjustments[panel2.id].dy += moveY
+              
+              // Update bounds for next iteration
+              bounds[i].x -= moveX
+              bounds[i].y -= moveY
+              bounds[j].x += moveX
+              bounds[j].y += moveY
+            }
           }
         }
       }
@@ -140,12 +152,20 @@ export default function UIOverlay({ activePanel, onShowPanel, onHidePanel, spher
 
   // Update adjusted positions when sphere positions or viewport changes
   useEffect(() => {
-    // Small delay to allow DOM to update
+    // Small delay to allow DOM to update, then run collision detection
     const timeout = setTimeout(() => {
       detectAndResolveCollisions()
     }, 100)
     
-    return () => clearTimeout(timeout)
+    // Also run collision detection after a longer delay to catch any late-rendering panels
+    const timeout2 = setTimeout(() => {
+      detectAndResolveCollisions()
+    }, 300)
+    
+    return () => {
+      clearTimeout(timeout)
+      clearTimeout(timeout2)
+    }
   }, [detectAndResolveCollisions])
 
   const panels = {
