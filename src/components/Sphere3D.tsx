@@ -1,6 +1,6 @@
 'use client'
 
-import { useRef, useState, useMemo } from 'react'
+import { useRef, useState, useMemo, useEffect } from 'react'
 import { useFrame } from '@react-three/fiber'
 import { Mesh } from 'three'
 import * as THREE from 'three'
@@ -34,6 +34,12 @@ export default function Sphere3D({ position, scale, color, id, onClick, onPositi
   const originalY = position[1]
   const [timeOffset] = useState(() => id.charCodeAt(0) * 10)
 
+  // Reset scale refs if scale prop changes to prevent drift
+  useEffect(() => {
+    targetScaleRef.current = scale
+    currentScaleRef.current = scale
+  }, [scale])
+
   useFrame((state, delta) => {
     if (meshRef.current && wireframeRef.current) {
       const time = state.clock.getElapsedTime()
@@ -53,11 +59,7 @@ export default function Sphere3D({ position, scale, color, id, onClick, onPositi
       wireframeRef.current.rotation.y = meshRef.current.rotation.y
       wireframeRef.current.rotation.z = meshRef.current.rotation.z
       
-      // Synchronize wireframe scale - ensure uniform scaling with slight offset
-      const wireframeScale = currentScaleRef.current * 0.95
-      wireframeRef.current.scale.setScalar(wireframeScale)
-      
-      // Determine target scale
+      // Determine target scale based on interaction state
       if (clicked) {
         targetScaleRef.current = scale * 1.1
       } else if (hovered) {
@@ -72,8 +74,18 @@ export default function Sphere3D({ position, scale, color, id, onClick, onPositi
         targetScaleRef.current,
         0.25
       )
+      
+      // Clamp scale to prevent drift - ensure it stays within reasonable bounds
+      const minScale = scale * 0.95
+      const maxScale = scale * 1.15
+      currentScaleRef.current = Math.max(minScale, Math.min(maxScale, currentScaleRef.current))
+      
       // Use setScalar to ensure uniform x, y, z scaling for perfect roundness
       meshRef.current.scale.setScalar(currentScaleRef.current)
+      
+      // Synchronize wireframe scale - ensure uniform scaling with slight offset
+      const wireframeScale = currentScaleRef.current * 0.95
+      wireframeRef.current.scale.setScalar(wireframeScale)
 
       // Update screen position for UI overlay (smoother with better interpolation)
       if (onPositionUpdate) {
