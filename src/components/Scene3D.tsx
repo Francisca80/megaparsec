@@ -208,13 +208,20 @@ function CameraController({ mousePosition, focusSphereId }: { mousePosition: { x
   const animationFrameRef = useRef<number | null>(null)
   
   useEffect(() => {
-    // Cancel any ongoing animation when effect runs or component unmounts
+    // Cancel any ongoing animation only when starting a new focus or when focusSphereId changes
     if (animationFrameRef.current !== null) {
       cancelAnimationFrame(animationFrameRef.current)
       animationFrameRef.current = null
     }
     
-    if (focusSphereId && spherePositions3D[focusSphereId] && controlsRef.current) {
+    // Only start animation if focusSphereId is set and valid
+    // If focusSphereId is null, just clean up and return (no unnecessary cancellation)
+    if (!focusSphereId) {
+      targetRef.current = null
+      return
+    }
+    
+    if (spherePositions3D[focusSphereId] && controlsRef.current) {
       const spherePosition = spherePositions3D[focusSphereId]
       const target = new THREE.Vector3(...spherePosition)
       targetRef.current = target

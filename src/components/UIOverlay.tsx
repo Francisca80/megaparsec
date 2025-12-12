@@ -117,7 +117,9 @@ export default function UIOverlay({ activePanel, onShowPanel, onHidePanel, spher
       }
 
       // Apply adjustments with viewport clamping
+      // Include ALL panels in adjusted state, not just visible ones
       Object.entries(spherePositions).forEach(([key, pos]) => {
+        // For visible panels, apply collision adjustments
         if (pos.visible && adjustments[key]) {
           const panelWidth = bounds.find(b => b.id === key)?.width || 200
           const panelHeight = bounds.find(b => b.id === key)?.height || 200
@@ -143,6 +145,10 @@ export default function UIOverlay({ activePanel, onShowPanel, onHidePanel, spher
             x: newX,
             y: newY
           }
+        } else {
+          // For invisible panels, preserve their position (or use original if no previous adjustment)
+          // This ensures positions persist when panels become visible again
+          adjusted[key] = { ...pos }
         }
       })
 
